@@ -29,50 +29,6 @@ func (c *Controller) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write(contents)
 		return
-	case "PUT", "POST":
-		log.Printf("updating node %q", path)
-		exists, stats, err := c.zkConn.Exists(path)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		reqBody, err := ioutil.ReadAll(req.Body)
-		if err != nil {
-			log.Printf("invalid body: %q", reqBody)
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		if !exists {
-			_, err := c.zkConn.Create(path, reqBody, 0, zk.WorldACL(zk.PermAll))
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			w.WriteHeader(http.StatusCreated)
-		} else {
-			if _, err := c.zkConn.Set(path, reqBody, stats.Version); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			w.WriteHeader(http.StatusOK)
-		}
-		return
-	case "DELETE":
-		log.Printf("deleting node %q", path)
-		exists, stats, err := c.zkConn.Exists(path)
-		if !exists || err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		if err := c.zkConn.Delete(path, stats.Version); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		w.WriteHeader(http.StatusNoContent)
-		return
 	case "OPTIONS":
 		// TODO: Implement CORs correctly
 		w.Header().Set("Access-Control-Allow-Origin", "*")
