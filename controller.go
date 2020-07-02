@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"path"
@@ -20,6 +21,12 @@ func (c *Controller) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		log.Printf("retrieving node %q", path)
 		contents, _, err := c.zkConn.Get(path)
 		if err != nil {
+			if errors.Is(err, zk.ErrNoNode) {
+				http.Error(w, err.Error(), http.StatusNotFound)
+				return
+			}
+
+			log.Printf("error: %v", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
