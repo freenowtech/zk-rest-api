@@ -8,7 +8,8 @@ import (
 	"time"
 
 	"github.com/samuel/go-zookeeper/zk"
-	"github.com/tquach/zk-rest-api/strflag"
+
+	"github.com/freenowtech/zk-rest-api/strflag"
 )
 
 // Global constants.
